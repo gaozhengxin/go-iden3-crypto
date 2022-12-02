@@ -48,7 +48,7 @@ func TestMIMC7(t *testing.T) {
 	// h1, hash of 1 elements
 	bigArray1 := []*big.Int{b12}
 
-	h1, err := Hash(bigArray1, nil)
+	h1, err := Hash(bigArray1, nil, 91)
 	assert.Nil(t, err)
 	// same hash value than the iden3js and circomlib tests:
 	assert.Equal(t, "0x"+hex.EncodeToString((*big.Int)(h1).Bytes()),
@@ -57,7 +57,7 @@ func TestMIMC7(t *testing.T) {
 	// h2a, hash of 2 elements
 	bigArray2a := []*big.Int{b78, b41}
 
-	h2a, err := Hash(bigArray2a, nil)
+	h2a, err := Hash(bigArray2a, nil, 91)
 	assert.Nil(t, err)
 	// same hash value than the iden3js and circomlib tests:
 	assert.Equal(t, "0x"+hex.EncodeToString((*big.Int)(h2a).Bytes()),
@@ -66,12 +66,12 @@ func TestMIMC7(t *testing.T) {
 	// h2b, hash of 2 elements
 	bigArray2b := []*big.Int{b12, b45}
 
-	mh2b := MIMC7Hash(b12, b45)
+	mh2b := MIMC7Hash(b12, b45, 91)
 	assert.Nil(t, err)
 	assert.Equal(t, "0x"+hex.EncodeToString((*big.Int)(mh2b).Bytes()),
 		"0x2ba7ebad3c6b6f5a20bdecba2333c63173ca1a5f2f49d958081d9fa7179c44e4")
 
-	h2b, err := Hash(bigArray2b, nil)
+	h2b, err := Hash(bigArray2b, nil, 91)
 	assert.Nil(t, err)
 	// same hash value than the iden3js and circomlib tests:
 	assert.Equal(t, "0x"+hex.EncodeToString((*big.Int)(h2b).Bytes()),
@@ -80,14 +80,14 @@ func TestMIMC7(t *testing.T) {
 	// h4, hash of 4 elements
 	bigArray4 := []*big.Int{b12, b45, b78, b41}
 
-	h4, err := Hash(bigArray4, nil)
+	h4, err := Hash(bigArray4, nil, 91)
 	assert.Nil(t, err)
 	// same hash value than the iden3js and circomlib tests:
 	assert.Equal(t, "0x"+hex.EncodeToString((*big.Int)(h4).Bytes()),
 		"0x284bc1f34f335933a23a433b6ff3ee179d682cd5e5e2fcdd2d964afa85104beb")
 
 	msg := []byte("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.") //nolint:lll
-	hmsg := HashBytes(msg)
+	hmsg := HashBytes(msg, 91)
 	assert.Equal(t,
 		"16855787120419064316734350414336285711017110414939748784029922801367685456065",
 		hmsg.String())
@@ -101,6 +101,6 @@ func BenchmarkMIMC7(b *testing.B) {
 	bigArray4 := []*big.Int{b12, b45, b78, b41}
 
 	for i := 0; i < b.N; i++ {
-		Hash(bigArray4, nil) //nolint:errcheck,gosec
+		Hash(bigArray4, nil, 91) //nolint:errcheck,gosec
 	}
 }

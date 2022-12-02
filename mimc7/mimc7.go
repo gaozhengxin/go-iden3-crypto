@@ -13,7 +13,7 @@ import (
 // SEED defines the seed used to constants
 const SEED = "mimc"
 
-var constants = generateConstantsData()
+var constants constantsData
 
 type constantsData struct {
 	seedHash *big.Int
@@ -22,14 +22,14 @@ type constantsData struct {
 	cts      []*ff.Element
 }
 
-func generateConstantsData() constantsData {
+func generateConstantsData(nRounds int) constantsData {
 	var constants constantsData
 
 	constants.seedHash = new(big.Int).SetBytes(keccak256.Hash([]byte(SEED)))
 	c := new(big.Int).SetBytes(keccak256.Hash([]byte(SEED + "_iv")))
 	constants.iv = new(big.Int).Mod(c, _constants.Q)
 
-	constants.nRounds = 91
+	constants.nRounds = nRounds
 	cts := getConstants(SEED, constants.nRounds)
 	constants.cts = cts
 	return constants
@@ -93,12 +93,13 @@ func HashGeneric(iv *big.Int, arr []*big.Int, nRounds int) (*big.Int, error) {
 
 // MIMC7Hash performs the MIMC7 hash over a *big.Int, using the Finite Field
 // over R and the number of rounds setted in the `constants` variable
-func MIMC7Hash(xInBI, kBI *big.Int) *big.Int { //nolint:golint
+func MIMC7Hash(xInBI, kBI *big.Int, nRounds int) *big.Int { //nolint:golint
+	constants = generateConstantsData(nRounds)
 	xIn := ff.NewElement().SetBigInt(xInBI)
 	k := ff.NewElement().SetBigInt(kBI)
 
 	var r *ff.Element
-	for i := 0; i < constants.nRounds; i++ {
+	for i := 0; i < nRounds; i++ {
 		var t *ff.Element
 		if i == 0 {
 			t = ff.NewElement().Add(xIn, k)
@@ -117,7 +118,7 @@ func MIMC7Hash(xInBI, kBI *big.Int) *big.Int { //nolint:golint
 }
 
 // Hash performs the MIMC7 hash over a *big.Int array
-func Hash(arr []*big.Int, key *big.Int) (*big.Int, error) {
+func Hash(arr []*big.Int, key *big.Int, nRounds int) (*big.Int, error) {
 	if !utils.CheckBigIntArrayInField(arr) {
 		return nil, errors.New("inputs values not inside Finite Field")
 	}
@@ -133,7 +134,7 @@ func Hash(arr []*big.Int, key *big.Int) (*big.Int, error) {
 				r,
 				arr[i],
 			),
-			MIMC7Hash(arr[i], r))
+			MIMC7Hash(arr[i], r, nRounds))
 		r = new(big.Int).Mod(r, _constants.Q)
 	}
 	return r, nil
@@ -141,7 +142,7 @@ func Hash(arr []*big.Int, key *big.Int) (*big.Int, error) {
 
 // HashBytes hashes a msg byte slice by blocks of 31 bytes encoded as
 // little-endian
-func HashBytes(b []byte) *big.Int {
+func HashBytes(b []byte, nRounds int) *big.Int {
 	n := 31
 	bElems := make([]*big.Int, 0, len(b)/n+1)
 	for i := 0; i < len(b)/n; i++ {
@@ -154,7 +155,7 @@ func HashBytes(b []byte) *big.Int {
 		utils.SetBigIntFromLEBytes(v, b[(len(b)/n)*n:])
 		bElems = append(bElems, v)
 	}
-	h, err := Hash(bElems, nil)
+	h, err := Hash(bElems, nil, nRounds)
 	if err != nil {
 		panic(err)
 	}
